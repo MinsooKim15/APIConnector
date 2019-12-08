@@ -44,18 +44,35 @@ class FlightConnector():
     rawFlightLegs = []
     rawFlightCarriers = []
     rawFlightAgents = []
-    def __init__(self,outboundDate, inboundDate, pageIndex, pageSize,url,key,enginePath):
-        self.outboundDate = outboundDate
-        self.inboundDate = inboundDate
-        self.pageIndex = pageIndex
-        self.pageSize = pageSize
+    def __init__(self,url,key,enginePath):
+        # self.outboundDate = outboundDate
+        # self.inboundDate = inboundDate
+        # self.pageIndex = pageIndex
+        # self.pageSize = pageSize
         self.url = url
         self.key = key
         self.enginePath = enginePath
 
+    def setDateOption(self, outboundDate,inboundDate):
+        self.outboundDate = outboundDate #inbound/OutboundDate는 항상 "%Y-%m-%d" String이어야 한다.
+        self.inboundDate = inboundDate
+    def setGridSearchDates(self, outboundDateRange,inboundDateRange):
+
+
+    # TODO : Create Grid Search Function
+    # TODO : Grid Search -> Execute
+    def setOption(self,destinationPlace, originPlace = "ICN" , cabinClass = "economy", children = 0, infants= 0, adults = 1):
+        # 공항 코드를 받아서, skyscanner parameter로 바꿈.
+        self.originPlace = originPlace
+        self.destinationPlace = destinationPlace
+        payLoadOriginPlace = originPlace + "-sky"
+        payLoadDestinationPlace = destinationPlace + "-sky"
+        self.payload = f"inboundDate={self.inboundDate}&cabinClass={cabinClass}&children={children}&infants={infants}&country=KO&currency=KRW&locale=en-US&originPlace={payLoadOriginPlace}&destinationPlace={payLoadDestinationPlace}&outboundDate={self.outboundDate}&adults={adults}"
+
     def createSession(self):
         url = self.url
-        payload = "inboundDate=2020-01-06&cabinClass=economy&children=0&infants=0&country=US&currency=KRW&locale=en-US&originPlace=ICN-sky&destinationPlace=JFK-sky&outboundDate=2020-01-02&adults=1"
+        payload = self.payload
+        # payload = "inboundDate=2020-01-06&cabinClass=economy&children=0&infants=0&country=US&currency=KRW&locale=en-US&originPlace=ICN-sky&destinationPlace=JFK-sky&outboundDate=2020-01-02&adults=1"
         headers = {
         'x-rapidapi-host': "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com",
         'x-rapidapi-key': self.key,
@@ -65,15 +82,26 @@ class FlightConnector():
         self.sessionKey = response.headers["Location"].split('/')[-1]
         print("Session Key:", self.sessionKey)
 
-    def getData(self):
+    def getAndUpdateData(self):
+        # 해당 inboundDate, outboundDate의 모든 index, page의 데이터를 순차적으로 commit한다.
+        for i in range(1, 1000):
+            print(i, "번째")
+            hasResult = self.getOneData(pageIndex = i, pageSize=500)
+            print("결과가 있나요?",hasResult)
+            if hasResult:
+                self.updateDB()
+            else:
+                break
+
+    def getOneData(self,pageIndex = 1, pageSize = 1000):
         url = "https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/pricing/uk2/v1.0/"
         queryUrl = url + self.sessionKey
-        querystring = {"originAirports":"ICN","destinationAirports":"JFK","pageIndex":"0","pageSize":"10000"}
-
+        querystring = {"originAirports":self.originPlace,"destinationAirports":self.destinationPlace,"pageIndex":pageIndex,"pageSize":pageSize}
         headers = {
         'x-rapidapi-host': "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com",
-        'x-rapidapi-key': "ab2bb01f37msha32356797613784p1c4e2ejsn75d5549b2f53"
+        'x-rapidapi-key': self.key
         }
+
         response = requests.request("GET", queryUrl, headers=headers, params=querystring)
         print(response.status_code)
         print(response.text)
@@ -85,7 +113,7 @@ class FlightConnector():
         resultCarriers = response.json()["Carriers"]
         resultAgents = response.json()["Agents"]
         resultPlaces = response.json()["Places"]
-        self.apiCallId = self.makeApiId()
+        self.apiCallId = self.makeApiCallId()
         self.rawFlightItineraries = self.makeRawFlightItineraries(iti = resultItineraries, query = resultQuery, apiCallId = self.apiCallId)
         self.rawFlightLegs = self.makeRawFlightLegs(resultLegs, self.apiCallId)
         self.rawFlightSegments = self.makeRawFlightSegments(resultSegments, self.apiCallId)
@@ -105,20 +133,16 @@ class FlightConnector():
         # 목적은 오직 항상 4자리 string을 주기 위한 것이다.
         # classCounter와 하나의 함수를 만들 수도 있고, 단순한 로직으로 바꿀 수도 있다. 나중에 리팩토링
         print("일단 들어온 숫자는 ", num)
-        if num < 10:
-            return("000" + str(num))
-        elif num < 100 :
-            return("00" + str(num))
-        elif num < 1000 :
-            return("0" + str(num))
-        elif num < 10000:
-            return(str(num))
+        if num < 10000:
+            return str(num).zfill(4)
+        elif num < 100000000:
+            return str(num % 10000 + 1).zfill(4)
         else:
-            #1000 초과시 안전을 위해 밑 자리만 자르고 다시 한다!
-            print("classCounter가 10000이상이어서 자르고 다시 makeIntToString으로 재귀")
-            makeInt(num%10000)
+            return str(num % 100000000 + 1).zfill(4)
+
+
     classCounter = 1
-    def makeApiId(self):
+    def makeApiCallId(self):
         prefix = "flightApiCall"
         id = prefix + "_" + self.makeIntToString(FlightConnector.classCounter) + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
         FlightConnector.classCounter += 1
@@ -190,17 +214,15 @@ class FlightConnector():
         session.add_all(self.rawFlightPlaces)
         session.add_all(self.rawFlightAgents)
         session.commit()
-    #     iti는 resultItineraries, query는 resultQuery입니다.
 
+    def clearVar(self):
+        self.rawFlightItineraries = None
+        self.rawFlightLegs = None
+        self.rawFlightCarriers = None
+        self.rawFlightSegments = None
+        self.rawFlightAgents = None
 
 if __name__ == "__main__":
+    print("Yeah")
     #TODO : Paging을 써야 함 ㅜ 안그러면 감당을 못하는 듯..
-    for i in range(1,1000):
-        print(i,"번째")
-        flightConnector = FlightConnector(20200106, 20200110,pageIndex=i, pageSize = 10)
-        flightConnector.createSession()
-        hasResult = flightConnector.getData()
-        if hasResult:
-            flightConnector.updateDB()
-        else:
-            break
+    # FlightConnector()

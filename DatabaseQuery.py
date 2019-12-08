@@ -26,19 +26,13 @@ class DBModel:
     def makeIntToString(self,num):
         # 목적은 오직 항상 4자리 string을 주기 위한 것이다.
         # classCounter와 하나의 함수를 만들 수도 있고, 단순한 로직으로 바꿀 수도 있다. 나중에 리팩토링
-        print("일단 들어온 숫자는 ", num)
-        if num < 10:
-            return("000" + str(num))
-        elif num < 100 :
-            return("00" + str(num))
-        elif num < 1000 :
-            return("0" + str(num))
-        elif num < 10000:
-            return(str(num))
+        if num < 10000 :
+            return str(num).zfill(4)
+        elif num < 100000000:
+            return str(num%10000 + 1).zfill(4)
         else:
-            #1000 초과시 안전을 위해 밑 자리만 자르고 다시 한다!
-            print("classCounter가 10000이상이어서 자르고 다시 makeIntToString으로 재귀")
-            makeInt(num%10000)
+            return str(num%100000000 + 1).zfill(4)
+
     classCounter = 1
     def makeId(self,prefix):
         id = prefix + "_" + self.makeIntToString(DBModel.classCounter) + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))

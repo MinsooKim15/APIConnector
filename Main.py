@@ -22,7 +22,7 @@ from datetime import date
 # 개별 모듈 import
 import DatabaseQuery
 from ExchangeConnector import ExchangeConnector
-import FlightConnector
+from FlightConnector import *
 from WeatherConnector import WeatherConnector
 
 
@@ -45,13 +45,17 @@ if __name__ == "__main__":
 
     # 시간 소모 적은 거 -> 많은 거 순임.
     # weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
-    # # weatherConnector.
     # weatherConnector.getData()
     # weatherConnector.updateDB()
     # weatherConnector.clearVar()
     # execute only if run as a script
-    exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
-    exchangeConnector.setDateTime(startDate="20190101")
-    exchangeConnector.getData()
-    exchangeConnector.updateDB()
-    exchangeConnector.clearVar()
+    # exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
+    # exchangeConnector.setDateTime(startDate="20190101")
+    # exchangeConnector.getData()
+    # exchangeConnector.updateDB()
+    # exchangeConnector.clearVar()
+    flightConnector = FlightConnector(url = flightUrl, key=flightKey, enginePath=dbEnginePath)
+    flightConnector.setDateOption(outboundDate= "2020-01-01", inboundDate= "2020-01-06")
+    flightConnector.setOption(destinationPlace="JFK")
+    flightConnector.createSession()
+    flightConnector.getAndUpdateData()
