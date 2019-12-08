@@ -448,7 +448,8 @@ class RawFlightPlace(Base, DBModel):
 
 
 # if __name__ == "__main__":
-#     # engine = create_engine('mysql+pymysql://root:1234567890@localhost/eightDays', echo=True)
+#     # engine = create_engine('mysql+pymysql://root
+#     :1234567890@localhost/eightDays', echo=True)
 #     # Session = sessionmaker(bind=engine)
 #     # session = Session()
 #     # session.add(RawExchange(rawExchangeId = "32"))

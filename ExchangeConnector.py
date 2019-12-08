@@ -80,13 +80,3 @@ class ExchangeConnector():
 
     def clearVar(self):
         self.rawExchanges = None
-    #TODO : Null 값처리?
-
-if __name__ == "__main__":
-    # 직접 옛날 데이터를 축적해야 할 수 있다.
-    # 여기는 그런 것을 위한 코드만 추가
-    print("Yeah")
-    # # execute only if run as a script
-    # exchangeConnector = ExchangeConnector(20191105)
-    # exchangeConnector.getData()
-    # exchangeConnector.updateDB()

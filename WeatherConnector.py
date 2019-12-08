@@ -71,8 +71,3 @@ class WeatherConnector():
         session.commit()
     def clearVar(self):
         self.rawWeatherSeouls = None
-
-if __name__ == "__main__":
-    weatherConnector = WeatherConnector()
-    weatherConnector.getData()
-    weatherConnector.updateDB()

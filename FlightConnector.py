@@ -58,6 +58,25 @@ class FlightConnector():
     def setDateOption(self, outboundDate,inboundDate):
         self.outboundDate = outboundDate #inbound/OutboundDate는 항상 "%Y-%m-%d" String이어야 한다.
         self.inboundDate = inboundDate
+    def setGridSearchDatesByConstant(self,dateRange, minimumTerm,maximumTerm):
+        if type(dateRange) != list or len(dateRange) != 2:
+            raise ValueError
+        startDate, endDate = dateRange
+        startDateFormatted = dateutil.parser.parse(startDate)
+        endDateFormatted = dateutil.parser.parse(endDate)
+        dateList = []
+        timeDelta = endDateFormatted - startDateFormatted
+        self.gridSearchDatesList = []
+        for i in range(timeDelta.days + 1):
+            day = startDateFormatted + timedelta(days=i)
+            dateList.append(day)
+        for oDate in dateList:
+            for iDate in dateList:
+                if ((iDate - oDate) >= timedelta(days=minimumTerm)) and ((iDate - oDate) <= timedelta(days = maximumTerm)):
+                    dateTuple = (oDate.strftime("%Y-%m-%d"), iDate.strftime("%Y-%m-%d"))
+                    self.gridSearchDatesList.append(dateTuple)
+
+
     def setGridSearchDates(self, outboundDateRange,inboundDateRange):
         # 각각의 Range는 시작, 끝으로 구성된 두 개의 값을 가진 List여야 한다.
         if type(outboundDateRange) != list or len(outboundDateRange) != 2:
@@ -270,7 +289,3 @@ class FlightConnector():
         self.rawFlightSegments = None
         self.rawFlightAgents = None
 
-if __name__ == "__main__":
-    print("Yeah")
-    #TODO : Paging을 써야 함 ㅜ 안그러면 감당을 못하는 듯..
-    # FlightConnector()
