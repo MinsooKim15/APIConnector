@@ -17,13 +17,15 @@ import requests
 
 import sys
 import io
+import time
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding = 'utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding = 'utf-8')
 # atom script에서 utf-8을 해결하기 위한 코드 -끝
 import DatabaseQuery
 
 from datetime import datetime
-from datetime import date
+from datetime import timedelta
+import dateutil.parser
 
 #databaseQuery 모듈을 위한 내용들
 from sqlalchemy import Column, DateTime, String, Text
@@ -56,7 +58,48 @@ class FlightConnector():
     def setDateOption(self, outboundDate,inboundDate):
         self.outboundDate = outboundDate #inbound/OutboundDate는 항상 "%Y-%m-%d" String이어야 한다.
         self.inboundDate = inboundDate
-    # def setGridSearchDates(self, outboundDateRange,inboundDateRange):
+    def setGridSearchDates(self, outboundDateRange,inboundDateRange):
+        # 각각의 Range는 시작, 끝으로 구성된 두 개의 값을 가진 List여야 한다.
+        if type(outboundDateRange) != list or len(outboundDateRange) != 2:
+            raise ValueError
+        outboundStart, outboundEnd = outboundDateRange
+        outboundStartDate = dateutil.parser.parse(outboundStart)  # start date
+        outboundEndDate = dateutil.parser.parse(outboundEnd)
+        inboundStart, inboundEnd = inboundDateRange
+        inboundStartDate = dateutil.parser.parse(inboundStart)  # start date
+        inboundEndDate = dateutil.parser.parse(inboundEnd)
+
+        outboundDelta = outboundEndDate - outboundStartDate
+        inboundDelta = inboundEndDate - inboundStartDate
+
+        outboundDateList = []
+        inboundDateList = []
+        for i in range(outboundDelta.days + 1):
+            day = outboundStartDate + timedelta(days=i)
+            outboundDateList.append(day)
+        for k in range(inboundDelta.days + 1):
+            day = inboundStartDate + timedelta(days=k)
+            inboundDateList.append(day)
+        print(outboundDateList)
+        print(inboundDateList)
+        self.gridSearchDatesList = []
+        for oDate in outboundDateList:
+            for iDate in inboundDateList:
+                if oDate < iDate:
+                    dateTuple = (oDate.strftime("%Y-%m-%d"),iDate.strftime("%Y-%m-%d"))
+                    self.gridSearchDatesList.append(dateTuple)
+        print(self.gridSearchDatesList)
+    def gridSearchGetDateAndUpdateDB(self):
+        #Tuple의 앞이 항상 outbound입니다.
+        #아니라면 API 에러 뽑겠지
+        for dateTuple in self.gridSearchDatesList:
+            outDate, inDate = dateTuple
+            self.setDateOption(outboundDate=outDate, inboundDate=inDate)
+            self.createSession()
+            self.getAndUpdateData()
+            self.clearVar()
+            # 무료 API여서 약 분당 40회(호출당 두번 * 20회) 하기 위해 쉰다.
+            time.sleep(3)
 
 
     # TODO : Create Grid Search Function
@@ -65,13 +108,16 @@ class FlightConnector():
         # 공항 코드를 받아서, skyscanner parameter로 바꿈.
         self.originPlace = originPlace
         self.destinationPlace = destinationPlace
-        payLoadOriginPlace = originPlace + "-sky"
-        payLoadDestinationPlace = destinationPlace + "-sky"
-        self.payload = f"inboundDate={self.inboundDate}&cabinClass={cabinClass}&children={children}&infants={infants}&country=KO&currency=KRW&locale=en-US&originPlace={payLoadOriginPlace}&destinationPlace={payLoadDestinationPlace}&outboundDate={self.outboundDate}&adults={adults}"
+        self.payLoadOriginPlace = originPlace + "-sky"
+        self.payLoadDestinationPlace = destinationPlace + "-sky"
+        self.cabinClass = cabinClass
+        self.children = children
+        self.infants = infants
+        self.adults = adults
 
     def createSession(self):
         url = self.url
-        payload = self.payload
+        payload = f"inboundDate={self.inboundDate}&cabinClass={self.cabinClass}&children={self.children}&infants={self.infants}&country=KO&currency=KRW&locale=en-US&originPlace={self.payLoadOriginPlace}&destinationPlace={self.payLoadDestinationPlace}&outboundDate={self.outboundDate}&adults={self.adults}"
         # payload = "inboundDate=2020-01-06&cabinClass=economy&children=0&infants=0&country=US&currency=KRW&locale=en-US&originPlace=ICN-sky&destinationPlace=JFK-sky&outboundDate=2020-01-02&adults=1"
         headers = {
         'x-rapidapi-host': "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com",
@@ -79,6 +125,8 @@ class FlightConnector():
         'content-type': "application/x-www-form-urlencoded"
         }
         response = requests.request("POST", url, data=payload, headers=headers)
+        print(response.headers)
+        print(response.json())
         self.sessionKey = response.headers["Location"].split('/')[-1]
         print("Session Key:", self.sessionKey)
 

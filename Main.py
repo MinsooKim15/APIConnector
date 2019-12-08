@@ -55,7 +55,11 @@ if __name__ == "__main__":
     # exchangeConnector.updateDB()
     # exchangeConnector.clearVar()
     flightConnector = FlightConnector(url = flightUrl, key=flightKey, enginePath=dbEnginePath)
-    flightConnector.setDateOption(outboundDate= "2020-01-01", inboundDate= "2020-01-06")
     flightConnector.setOption(destinationPlace="JFK")
-    flightConnector.createSession()
-    flightConnector.getAndUpdateData()
+    flightConnector.setGridSearchDates(outboundDateRange=["2020-01-01", "2020-03-01"], inboundDateRange=["2020-01-01", "2020-03-06"])
+    print(flightConnector.gridSearchDatesList)
+    flightConnector.gridSearchGetDateAndUpdateDB()
+    # flightConnector.setDateOption(outboundDate= "2020-01-01", inboundDate= "2020-01-06")
+
+    #
+    # flightConnector.getAndUpdateData()
