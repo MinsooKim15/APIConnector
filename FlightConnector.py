@@ -56,7 +56,7 @@ class FlightConnector():
     def setDateOption(self, outboundDate,inboundDate):
         self.outboundDate = outboundDate #inbound/OutboundDate는 항상 "%Y-%m-%d" String이어야 한다.
         self.inboundDate = inboundDate
-    def setGridSearchDates(self, outboundDateRange,inboundDateRange):
+    # def setGridSearchDates(self, outboundDateRange,inboundDateRange):
 
 
     # TODO : Create Grid Search Function
