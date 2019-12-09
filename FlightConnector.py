@@ -36,7 +36,12 @@ from sqlalchemy import create_engine
 import sqlalchemy as db
 
 
+import logging
+
 class FlightConnector():
+
+    flightLogger = ""
+
     sessionUrl = ""
     sessionQueryString = {}
     sessionHeaders = {}
@@ -51,6 +56,18 @@ class FlightConnector():
         # self.inboundDate = inboundDate
         # self.pageIndex = pageIndex
         # self.pageSize = pageSize
+        self.flightLogger = logging.getLogger("flight")
+        self.flightLogger.setLevel(logging.INFO)
+        streamHandler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        streamHandler.setFormatter(formatter)
+        self.flightLogger.addHandler(streamHandler)
+        fileHandler = logging.FileHandler("flight.log")
+        fileHandler.setFormatter(formatter)
+        self.flightLogger.addHandler(fileHandler)
+
+        self.flightLogger.info("Flight Connector Init")
+
         self.url = url
         self.key = key
         self.enginePath = enginePath
@@ -58,6 +75,7 @@ class FlightConnector():
     def setDateOption(self, outboundDate,inboundDate):
         self.outboundDate = outboundDate #inbound/OutboundDate는 항상 "%Y-%m-%d" String이어야 한다.
         self.inboundDate = inboundDate
+        self.flightLogger.info("function setDateOption")
     def setGridSearchDatesByConstant(self,dateRange, minimumTerm,maximumTerm):
         if type(dateRange) != list or len(dateRange) != 2:
             raise ValueError
@@ -75,7 +93,7 @@ class FlightConnector():
                 if ((iDate - oDate) >= timedelta(days=minimumTerm)) and ((iDate - oDate) <= timedelta(days = maximumTerm)):
                     dateTuple = (oDate.strftime("%Y-%m-%d"), iDate.strftime("%Y-%m-%d"))
                     self.gridSearchDatesList.append(dateTuple)
-
+        self.flightLogger.info("setGridSearchDatesByConstant")
 
     def setGridSearchDates(self, outboundDateRange,inboundDateRange):
         # 각각의 Range는 시작, 끝으로 구성된 두 개의 값을 가진 List여야 한다.
@@ -93,21 +111,21 @@ class FlightConnector():
 
         outboundDateList = []
         inboundDateList = []
+        self.flightLogger.info("function setGridSearchDates")
         for i in range(outboundDelta.days + 1):
             day = outboundStartDate + timedelta(days=i)
             outboundDateList.append(day)
         for k in range(inboundDelta.days + 1):
             day = inboundStartDate + timedelta(days=k)
             inboundDateList.append(day)
-        print(outboundDateList)
-        print(inboundDateList)
+
         self.gridSearchDatesList = []
         for oDate in outboundDateList:
             for iDate in inboundDateList:
                 if oDate < iDate:
                     dateTuple = (oDate.strftime("%Y-%m-%d"),iDate.strftime("%Y-%m-%d"))
                     self.gridSearchDatesList.append(dateTuple)
-        print(self.gridSearchDatesList)
+
     def gridSearchGetDateAndUpdateDB(self):
         #Tuple의 앞이 항상 outbound입니다.
         #아니라면 API 에러 뽑겠지
@@ -119,6 +137,8 @@ class FlightConnector():
             self.clearVar()
             # 무료 API여서 약 분당 40회(호출당 두번 * 20회) 하기 위해 쉰다.
             time.sleep(3)
+
+        self.flightLogger.info("function gridSearchGetDateAndUpdateDB")
 
 
     # TODO : Create Grid Search Function
@@ -144,17 +164,17 @@ class FlightConnector():
         'content-type': "application/x-www-form-urlencoded"
         }
         response = requests.request("POST", url, data=payload, headers=headers)
-        print(response.headers)
-        print(response.json())
+        # print(response.headers)
+        # print(response.json())
         self.sessionKey = response.headers["Location"].split('/')[-1]
-        print("Session Key:", self.sessionKey)
+        # print("Session Key:", self.sessionKey)
 
     def getAndUpdateData(self):
         # 해당 inboundDate, outboundDate의 모든 index, page의 데이터를 순차적으로 commit한다.
         for i in range(1, 1000):
-            print(i, "번째")
+            # print(i, "번째")
             hasResult = self.getOneData(pageIndex = i, pageSize=500)
-            print("결과가 있나요?",hasResult)
+            # print("결과가 있나요?",hasResult)
             if hasResult:
                 self.updateDB()
             else:
@@ -170,9 +190,9 @@ class FlightConnector():
         }
 
         response = requests.request("GET", queryUrl, headers=headers, params=querystring)
-        print(response.status_code)
-        print(response.text)
-        print(response.json())
+        # print(response.status_code)
+        # print(response.text)
+        # print(response.json())
         resultQuery = response.json()["Query"]
         resultItineraries = response.json()["Itineraries"]
         resultLegs = response.json()["Legs"]
@@ -187,8 +207,8 @@ class FlightConnector():
         self.rawFlightCarriers = self.makeRawFlightCarriers(resultCarriers, self.apiCallId)
         self.rawFlightPlaces = self.makeRawFlightPlaces(resultPlaces, self.apiCallId)
         self.rawFlightAgents = self.makeRawFlightAgents(resultAgents, self.apiCallId)
-        print("**************")
-        print(self.rawFlightItineraries)
+        # print("**************")
+        # print(self.rawFlightItineraries)
         if len(self.rawFlightItineraries) > 0:
             return True
         else :
@@ -199,7 +219,7 @@ class FlightConnector():
     def makeIntToString(self,num):
         # 목적은 오직 항상 4자리 string을 주기 위한 것이다.
         # classCounter와 하나의 함수를 만들 수도 있고, 단순한 로직으로 바꿀 수도 있다. 나중에 리팩토링
-        print("일단 들어온 숫자는 ", num)
+        # print("일단 들어온 숫자는 ", num)
         if num < 10000:
             return str(num).zfill(4)
         elif num < 100000000:
@@ -213,14 +233,14 @@ class FlightConnector():
         prefix = "flightApiCall"
         id = prefix + "_" + self.makeIntToString(FlightConnector.classCounter) + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
         FlightConnector.classCounter += 1
-        print(id)
+        # print(id)
         return id
 
     def makeRawFlightItineraries(self, iti, query,apiCallId):
         results = []
-        print(apiCallId)
-        print("iti의 길이")
-        print(len(iti))
+        # print(apiCallId)
+        # print("iti의 길이")
+        # print(len(iti))
         for i in iti:
             result = DatabaseQuery.RawFlightItinerary(
                 OutboundLegId = i["OutboundLegId"],
@@ -271,6 +291,8 @@ class FlightConnector():
             results.append(result)
         return results
     def updateDB(self):
+        self.flightLogger.info("function update DB")
+        self.flightLogger.info(self.rawFlightItineraries)
         engine = create_engine(self.enginePath, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -281,6 +303,8 @@ class FlightConnector():
         session.add_all(self.rawFlightPlaces)
         session.add_all(self.rawFlightAgents)
         session.commit()
+        del session
+        self.flightLogger.info("function update DB Commit Done")
 
     def clearVar(self):
         self.rawFlightItineraries = None
