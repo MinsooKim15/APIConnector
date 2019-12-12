@@ -201,6 +201,8 @@ class FlightConnector():
         resultAgents = response.json()["Agents"]
         resultPlaces = response.json()["Places"]
         self.apiCallId = self.makeApiCallId()
+        print("ApiCallId는:", self.apiCallId)
+
         self.rawFlightItineraries = self.makeRawFlightItineraries(iti = resultItineraries, query = resultQuery, apiCallId = self.apiCallId)
         self.rawFlightLegs = self.makeRawFlightLegs(resultLegs, self.apiCallId)
         self.rawFlightSegments = self.makeRawFlightSegments(resultSegments, self.apiCallId)
@@ -233,7 +235,7 @@ class FlightConnector():
         prefix = "flightApiCall"
         id = prefix + "_" + self.makeIntToString(FlightConnector.classCounter) + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
         FlightConnector.classCounter += 1
-        # print(id)
+        print(id)
         return id
 
     def makeRawFlightItineraries(self, iti, query,apiCallId):

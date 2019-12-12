@@ -334,7 +334,7 @@ class RawFlightItinerary(Base, DBModel):
         self.queryInboundDate = datetime.strptime(InboundDate,'%Y-%m-%d')
         self.queryCabinClass = str(CabinClass)
         self.queryGroupPricing = int(GroupPricing)
-        self.apiCallid = apiCallId
+        self.apiCallId = apiCallId
         self.writeDate = datetime.now()
 
 class RawFlightLeg(Base, DBModel):
@@ -435,6 +435,9 @@ class RawFlightPlace(Base, DBModel):
     writeDate = Column(DateTime)
 
     def __init__(self, Id, Code, Type, Name, apiCallId, ParentId = 0):
+        print(apiCallId)
+        print(type(apiCallId))
+        assert apiCallId != None
         # ParentId가 없는 경우, 0으로 채움
         self.prefix = self.__tablename__[0].lower() + self.__tablename__[1:]
         self.rawFlightPlacesId = self.makeId(self.prefix)
