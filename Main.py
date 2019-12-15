@@ -60,6 +60,16 @@ class MyFormatter(logging.Formatter):
 if __name__ == "__main__":
     import json
 
+    mainLogger = logging.getLogger("main")
+    mainLogger.setLevel(logging.INFO)
+    streamHandler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    streamHandler.setFormatter(formatter)
+    mainLogger.addHandler(streamHandler)
+    fileHandler = logging.FileHandler("flight.log")
+    fileHandler.setFormatter(formatter)
+    mainLogger.addHandler(fileHandler)
+
     with open('config.json', 'r') as f:
         config = json.load(f)
 
@@ -75,9 +85,9 @@ if __name__ == "__main__":
     nearAsiaList = list(airportList["northEastAsia"].keys()) + list(airportList["southAsia"].keys())
     farList = list(airportList["southWestAsia"].keys()) + list(airportList["europe"].keys()) + list(airportList["northAmerica"].keys()) + list(airportList["oceania"].keys())
     veryFarList = list(airportList["africa"].keys()) + list(airportList["latinAmerica"].keys())
-    print(nearAsiaList)
-    print(farList)
-    print(veryFarList)
+    # print(nearAsiaList)
+    # print(farList)
+    # print(veryFarList)
     # # 시간 소모 적은 거 -> 많은 거 순임.
     # weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
     # weatherConnector.getData()
@@ -96,12 +106,13 @@ if __name__ == "__main__":
     today = datetime.now()
     dateRange = makeDateRange(today, range=10)
     flightConnector = FlightConnector(url = flightUrl, key=flightKey, enginePath=dbEnginePath)
-    print("일단 여기 까진 동작")
+    mainLogger.info("Init 성공")
     #
     #
     for i in nearAsiaList:
     #일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
         print("시작")
+        print(i)
         flightConnector.setOption(destinationPlace=i)
         flightConnector.setGridSearchDatesByConstant(dateRange = dateRange, minimumTerm = 3, maximumTerm = 6)
         flightConnector.gridSearchGetDateAndUpdateDB()

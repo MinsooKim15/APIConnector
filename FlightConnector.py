@@ -35,12 +35,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 import sqlalchemy as db
 
-
 import logging
 
 class FlightConnector():
 
     flightLogger = ""
+    alchemyLogger = ""
 
     sessionUrl = ""
     sessionQueryString = {}
@@ -51,6 +51,16 @@ class FlightConnector():
     rawFlightLegs = []
     rawFlightCarriers = []
     rawFlightAgents = []
+    gridSearchDatesList = []
+    originPlace = ""
+    destinationPlace = ""
+    payLoadOriginPlace = ""
+    payLoadDestinationPlace = ""
+    cabinClass = ""
+    children = ""
+    infants = ""
+    adults = ""
+
     def __init__(self,url,key,enginePath):
         # self.outboundDate = outboundDate
         # self.inboundDate = inboundDate
@@ -65,8 +75,13 @@ class FlightConnector():
         fileHandler = logging.FileHandler("flight.log")
         fileHandler.setFormatter(formatter)
         self.flightLogger.addHandler(fileHandler)
-
+        print("(1) This is the Initiation : Should Show Once")
+        self.flightLogger.warn("(1) This is the Initiation : Should Show Once")
         self.flightLogger.info("Flight Connector Init")
+        self.alchemyLogger = logging.getLogger('sqlalchemy.engine')
+        self.alchemyLogger.setLevel(logging.INFO)
+        self.alchemyLogger.addHandler(streamHandler)
+        self.alchemyLogger.addHandler(fileHandler)
 
         self.url = url
         self.key = key
@@ -75,7 +90,7 @@ class FlightConnector():
     def setDateOption(self, outboundDate,inboundDate):
         self.outboundDate = outboundDate #inbound/OutboundDate는 항상 "%Y-%m-%d" String이어야 한다.
         self.inboundDate = inboundDate
-        self.flightLogger.info("function setDateOption")
+
     def setGridSearchDatesByConstant(self,dateRange, minimumTerm,maximumTerm):
         if type(dateRange) != list or len(dateRange) != 2:
             raise ValueError
@@ -93,7 +108,6 @@ class FlightConnector():
                 if ((iDate - oDate) >= timedelta(days=minimumTerm)) and ((iDate - oDate) <= timedelta(days = maximumTerm)):
                     dateTuple = (oDate.strftime("%Y-%m-%d"), iDate.strftime("%Y-%m-%d"))
                     self.gridSearchDatesList.append(dateTuple)
-        self.flightLogger.info("setGridSearchDatesByConstant")
 
     def setGridSearchDates(self, outboundDateRange,inboundDateRange):
         # 각각의 Range는 시작, 끝으로 구성된 두 개의 값을 가진 List여야 한다.
@@ -111,7 +125,6 @@ class FlightConnector():
 
         outboundDateList = []
         inboundDateList = []
-        self.flightLogger.info("function setGridSearchDates")
         for i in range(outboundDelta.days + 1):
             day = outboundStartDate + timedelta(days=i)
             outboundDateList.append(day)
@@ -119,7 +132,7 @@ class FlightConnector():
             day = inboundStartDate + timedelta(days=k)
             inboundDateList.append(day)
 
-        self.gridSearchDatesList = []
+
         for oDate in outboundDateList:
             for iDate in inboundDateList:
                 if oDate < iDate:
@@ -138,7 +151,6 @@ class FlightConnector():
             # 무료 API여서 약 분당 40회(호출당 두번 * 20회) 하기 위해 쉰다.
             time.sleep(3)
 
-        self.flightLogger.info("function gridSearchGetDateAndUpdateDB")
 
 
     # TODO : Create Grid Search Function
@@ -153,6 +165,7 @@ class FlightConnector():
         self.children = children
         self.infants = infants
         self.adults = adults
+        self.flightLogger.info("setOption self.originPlace : " + str(self.originPlace) + ", self.destinationPlace : " + str(self.destinationPlace))
 
     def createSession(self):
         url = self.url
@@ -164,6 +177,8 @@ class FlightConnector():
         'content-type': "application/x-www-form-urlencoded"
         }
         response = requests.request("POST", url, data=payload, headers=headers)
+        self.flightLogger.info("(2) create Session should show first of all other methods except Init")
+        self.flightLogger.info("created Session with:" +str(payload))
         # print(response.headers)
         # print(response.json())
         self.sessionKey = response.headers["Location"].split('/')[-1]
@@ -171,6 +186,7 @@ class FlightConnector():
 
     def getAndUpdateData(self):
         # 해당 inboundDate, outboundDate의 모든 index, page의 데이터를 순차적으로 commit한다.
+        self.flightLogger.info("(4) getAndUpdateData : This should Show after getAndUpdateData")
         for i in range(1, 1000):
             # print(i, "번째")
             hasResult = self.getOneData(pageIndex = i, pageSize=500)
@@ -193,6 +209,8 @@ class FlightConnector():
         # print(response.status_code)
         # print(response.text)
         # print(response.json())
+        self.flightLogger.info("(5) getOneData This should Show After getAndUpdateData")
+        self.flightLogger.info("Get New data from" + str(querystring))
         resultQuery = response.json()["Query"]
         resultItineraries = response.json()["Itineraries"]
         resultLegs = response.json()["Legs"]
@@ -201,7 +219,7 @@ class FlightConnector():
         resultAgents = response.json()["Agents"]
         resultPlaces = response.json()["Places"]
         self.apiCallId = self.makeApiCallId()
-        print("ApiCallId는:", self.apiCallId)
+        # print("ApiCallId는:", self.apiCallId)
 
         self.rawFlightItineraries = self.makeRawFlightItineraries(iti = resultItineraries, query = resultQuery, apiCallId = self.apiCallId)
         self.rawFlightLegs = self.makeRawFlightLegs(resultLegs, self.apiCallId)
@@ -235,7 +253,7 @@ class FlightConnector():
         prefix = "flightApiCall"
         id = prefix + "_" + self.makeIntToString(FlightConnector.classCounter) + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
         FlightConnector.classCounter += 1
-        print(id)
+        # print(id)
         return id
 
     def makeRawFlightItineraries(self, iti, query,apiCallId):
@@ -293,8 +311,6 @@ class FlightConnector():
             results.append(result)
         return results
     def updateDB(self):
-        self.flightLogger.info("function update DB")
-        self.flightLogger.info(self.rawFlightItineraries)
         engine = create_engine(self.enginePath, echo=True)
         Session = sessionmaker(bind=engine)
         session = Session()
@@ -306,7 +322,6 @@ class FlightConnector():
         session.add_all(self.rawFlightAgents)
         session.commit()
         del session
-        self.flightLogger.info("function update DB Commit Done")
 
     def clearVar(self):
         self.rawFlightItineraries = None

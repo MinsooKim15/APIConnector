@@ -37,7 +37,7 @@ class DBModel:
     def makeId(self,prefix):
         id = prefix + "_" + self.makeIntToString(DBModel.classCounter) + "_" + str(datetime.now().strftime("%Y%m%d%H%M%S"))
         DBModel.classCounter += 1
-        print(id)
+
         return id
 
 class Exchange(Base):
@@ -205,14 +205,12 @@ class RawWeatherSeoulOnly(Base,DBModel):
             now = now.replace(hour = hourInt)
             now = now.replace(minute = 0)
             now = now.replace(second = 0)
-            print(now)
             return now
         else :
             now = now.replace(day = now.day + int(day))
             now = now.replace(hour = hourInt)
             now = now.replace(minute = 0)
             now = now.replace(second = 0)
-            print(now)
             return now
 
     def __init__(self,hour, day, temp, tmx, sky, pty, wfKor, wfEn, pop, ws, wd, wdKor, wdEn, reh):
@@ -435,8 +433,6 @@ class RawFlightPlace(Base, DBModel):
     writeDate = Column(DateTime)
 
     def __init__(self, Id, Code, Type, Name, apiCallId, ParentId = 0):
-        print(apiCallId)
-        print(type(apiCallId))
         assert apiCallId != None
         # ParentId가 없는 경우, 0으로 채움
         self.prefix = self.__tablename__[0].lower() + self.__tablename__[1:]
