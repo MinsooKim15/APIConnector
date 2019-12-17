@@ -110,24 +110,27 @@ if __name__ == "__main__":
         dateRange = makeDateRange(today, range=10)
         flightConnector = FlightConnector(url=flightUrl, key=flightKey, enginePath=dbEnginePath)
         mainLogger.info("Init 성공")
-        #
-        #
-        for i in nearAsiaList:
-            # 일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
-            print("시작")
-            print(i)
-            flightConnector.setOption(destinationPlace=i)
-            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=3, maximumTerm=6)
-            flightConnector.gridSearchGetDateAndUpdateDB()
-        for j in farList:
-            # 멀다면 1주 ~ 2주를 주로 가는 시간대로 가정한다.
-            flightConnector.setOption(destinationPlace=j)
-            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=6, maximumTerm=15)
-            flightConnector.gridSearchGetDateAndUpdateDB()
-        for k in veryFarList:
-            flightConnector.setOption(destinationPlace=k)
-            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=12, maximumTerm=30)
-            flightConnector.gridSearchGetDateAndUpdateDB()
+
+        try:
+            for i in nearAsiaList:
+                # 일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
+                print("시작")
+                print(i)
+                flightConnector.setOption(destinationPlace=i)
+                flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=3, maximumTerm=3)
+                flightConnector.gridSearchGetDateAndUpdateDB()
+            for j in farList:
+                # 멀다면 1주 ~ 2주를 주로 가는 시간대로 가정한다.
+                flightConnector.setOption(destinationPlace=j)
+                flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=7, maximumTerm=7)
+                flightConnector.gridSearchGetDateAndUpdateDB()
+            for k in veryFarList:
+                flightConnector.setOption(destinationPlace=k)
+                flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=12, maximumTerm=12)
+                flightConnector.gridSearchGetDateAndUpdateDB()
+        except MemoryError as error:
+            # Output expected MemoryErrors.
+            mainLogger.warn(error)
         # handler = logging.StreamHandler(MyFormatter())
         # logger = logging.getLogger()
         # logger.addHandler(handler)
