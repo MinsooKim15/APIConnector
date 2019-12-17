@@ -57,76 +57,79 @@ class MyFormatter(logging.Formatter):
             s = "%s,%03d" % (t, record.msecs)
         return s
 
+
 if __name__ == "__main__":
-    import json
 
-    mainLogger = logging.getLogger("main")
-    mainLogger.setLevel(logging.INFO)
-    streamHandler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    streamHandler.setFormatter(formatter)
-    mainLogger.addHandler(streamHandler)
-    fileHandler = logging.FileHandler("flight.log")
-    fileHandler.setFormatter(formatter)
-    mainLogger.addHandler(fileHandler)
+        import json
 
-    with open('config.json', 'r') as f:
-        config = json.load(f)
+        mainLogger = logging.getLogger("main")
+        mainLogger.setLevel(logging.INFO)
+        streamHandler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        streamHandler.setFormatter(formatter)
+        mainLogger.addHandler(streamHandler)
+        fileHandler = logging.FileHandler("flight.log")
+        fileHandler.setFormatter(formatter)
+        mainLogger.addHandler(fileHandler)
 
-    weatherUrl = config["weather"]["url"]
-    exchangeAuthKey = config["exchange"]["authKey"]
-    flightUrl = config["flight"]["url"]
-    flightKey = config["flight"]["x-rapidapi-key"]
-    dbEnginePath = config["db"]["enginePath"]
+        with open('config.json', 'r') as f:
+            config = json.load(f)
 
-    with open('airportList.json',  'r') as j:
-        airportList = json.load(j)
+        weatherUrl = config["weather"]["url"]
+        exchangeAuthKey = config["exchange"]["authKey"]
+        flightUrl = config["flight"]["url"]
+        flightKey = config["flight"]["x-rapidapi-key"]
+        dbEnginePath = config["db"]["enginePath"]
 
-    nearAsiaList = list(airportList["northEastAsia"].keys()) + list(airportList["southAsia"].keys())
-    farList = list(airportList["southWestAsia"].keys()) + list(airportList["europe"].keys()) + list(airportList["northAmerica"].keys()) + list(airportList["oceania"].keys())
-    veryFarList = list(airportList["africa"].keys()) + list(airportList["latinAmerica"].keys())
-    # print(nearAsiaList)
-    # print(farList)
-    # print(veryFarList)
-    # # 시간 소모 적은 거 -> 많은 거 순임.
-    # weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
-    # weatherConnector.getData()
-    # weatherConnector.updateDB()
-    # weatherConnector.clearVar()
-    # # execute only if run as a script
-    # exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
-    # exchangeConnector.setDateTime(startDate="20190101")
-    # exchangeConnector.getData()
-    # exchangeConnector.updateDB()
-    # exchangeConnector.clearVar()
-    # 1개 호출시 -> setOption,setDateOption,CreateSession, getAndIUpdate순
-    # 여러개 호출시 -> 아래 코드 형식으로 가자
+        with open('airportList.json', 'r') as j:
+            airportList = json.load(j)
 
-    # 오늘부터 1년
-    today = datetime.now()
-    dateRange = makeDateRange(today, range=10)
-    flightConnector = FlightConnector(url = flightUrl, key=flightKey, enginePath=dbEnginePath)
-    mainLogger.info("Init 성공")
-    #
-    #
-    for i in nearAsiaList:
-    #일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
-        print("시작")
-        print(i)
-        flightConnector.setOption(destinationPlace=i)
-        flightConnector.setGridSearchDatesByConstant(dateRange = dateRange, minimumTerm = 3, maximumTerm = 6)
-        flightConnector.gridSearchGetDateAndUpdateDB()
-    for j in farList:
-    #멀다면 1주 ~ 2주를 주로 가는 시간대로 가정한다.
-        flightConnector.setOption(destinationPlace=j)
-        flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm= 6, maximumTerm= 15)
-        flightConnector.gridSearchGetDateAndUpdateDB()
-    for k in veryFarList:
-        flightConnector.setOption(destinationPlace=k)
-        flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm = 12, maximumTerm = 30)
-        flightConnector.gridSearchGetDateAndUpdateDB()
-    # handler = logging.StreamHandler(MyFormatter())
-    # logger = logging.getLogger()
-    # logger.addHandler(handler)
-    # # flightConnector.setGridSearchDates(outboundDateRange= dateRange , inboundDateRange= dateRange)
-    # flightConnector.gridSearchGetDateAndUpdateDB()
+        nearAsiaList = list(airportList["northEastAsia"].keys()) + list(airportList["southAsia"].keys())
+        farList = list(airportList["southWestAsia"].keys()) + list(airportList["europe"].keys()) + list(
+            airportList["northAmerica"].keys()) + list(airportList["oceania"].keys())
+        veryFarList = list(airportList["africa"].keys()) + list(airportList["latinAmerica"].keys())
+        # print(nearAsiaList)
+        # print(farList)
+        # print(veryFarList)
+        # # 시간 소모 적은 거 -> 많은 거 순임.
+        # weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
+        # weatherConnector.getData()
+        # weatherConnector.updateDB()
+        # weatherConnector.clearVar()
+        # # execute only if run as a script
+        # exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
+        # exchangeConnector.setDateTime(startDate="20190101")
+        # exchangeConnector.getData()
+        # exchangeConnector.updateDB()
+        # exchangeConnector.clearVar()
+        # 1개 호출시 -> setOption,setDateOption,CreateSession, getAndIUpdate순
+        # 여러개 호출시 -> 아래 코드 형식으로 가자
+
+        # 오늘부터 1년
+        today = datetime.now()
+        dateRange = makeDateRange(today, range=10)
+        flightConnector = FlightConnector(url=flightUrl, key=flightKey, enginePath=dbEnginePath)
+        mainLogger.info("Init 성공")
+        #
+        #
+        for i in nearAsiaList:
+            # 일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
+            print("시작")
+            print(i)
+            flightConnector.setOption(destinationPlace=i)
+            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=3, maximumTerm=6)
+            flightConnector.gridSearchGetDateAndUpdateDB()
+        for j in farList:
+            # 멀다면 1주 ~ 2주를 주로 가는 시간대로 가정한다.
+            flightConnector.setOption(destinationPlace=j)
+            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=6, maximumTerm=15)
+            flightConnector.gridSearchGetDateAndUpdateDB()
+        for k in veryFarList:
+            flightConnector.setOption(destinationPlace=k)
+            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=12, maximumTerm=30)
+            flightConnector.gridSearchGetDateAndUpdateDB()
+        # handler = logging.StreamHandler(MyFormatter())
+        # logger = logging.getLogger()
+        # logger.addHandler(handler)
+        # # flightConnector.setGridSearchDates(outboundDateRange= dateRange , inboundDateRange= dateRange)
+        # flightConnector.gridSearchGetDateAndUpdateDB()
