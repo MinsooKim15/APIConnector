@@ -6,6 +6,7 @@ import sys
 import io
 sys.stdout = io.TextIOWrapper(sys.stdout.detach(), encoding = 'utf-8')
 sys.stderr = io.TextIOWrapper(sys.stderr.detach(), encoding = 'utf-8')
+from apscheduler.schedulers.blocking import BlockingScheduler
 # atom script에서 utf-8을 해결하기 위한 코드 -끝
 
 # coding: utf-8
@@ -58,8 +59,26 @@ class MyFormatter(logging.Formatter):
         return s
 
 
-if __name__ == "__main__":
+class CronTab(object):
+    def __init__(self, *events):
+        self.events = events
 
+    def run(self):
+        t=datetime(*datetime.now().timetuple()[:5])
+        while 1:
+            for e in self.events:
+                e.check(t)
+
+            t += timedelta(minutes=1)
+            while datetime.now() < t:
+                time.sleep((t - datetime.now()).seconds)
+
+
+
+
+if __name__ == "__main__":
+    #TODO : 스케줄링 모듈을 쪼개자
+    def mainWork():
         import json
 
         mainLogger = logging.getLogger("main")
@@ -131,6 +150,9 @@ if __name__ == "__main__":
         except MemoryError as error:
             # Output expected MemoryErrors.
             mainLogger.warn(error)
+    sched = BlockingScheduler()
+    sched.add_job(mainWork, 'interval', minutes=1)
+    sched.start()
         # handler = logging.StreamHandler(MyFormatter())
         # logger = logging.getLogger()
         # logger.addHandler(handler)
