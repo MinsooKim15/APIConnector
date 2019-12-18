@@ -59,25 +59,9 @@ class MyFormatter(logging.Formatter):
         return s
 
 
-class CronTab(object):
-    def __init__(self, *events):
-        self.events = events
-
-    def run(self):
-        t=datetime(*datetime.now().timetuple()[:5])
-        while 1:
-            for e in self.events:
-                e.check(t)
-
-            t += timedelta(minutes=1)
-            while datetime.now() < t:
-                time.sleep((t - datetime.now()).seconds)
-
-
 
 
 if __name__ == "__main__":
-    #TODO : 스케줄링 모듈을 쪼개자
     def mainWork():
         import json
 
@@ -150,10 +134,15 @@ if __name__ == "__main__":
         except MemoryError as error:
             # Output expected MemoryErrors.
             mainLogger.warn(error)
-    # sched = BlockingScheduler()
-    # sched.add_job(mainWork, 'cron', hour=5)
-    # sched.start()
+
+    def setScheduler():
+        sched = BlockingScheduler()
+        sched.add_job(mainWork, 'cron', hour=5)
+        sched.start()
+    #이 아래의 주석을 지우면, 즉시 동작
     mainWork()
+    #아래는 스케줄러
+    setScheduler()
         # handler = logging.StreamHandler(MyFormatter())
         # logger = logging.getLogger()
         # logger.addHandler(handler)
