@@ -151,7 +151,7 @@ if __name__ == "__main__":
             # Output expected MemoryErrors.
             mainLogger.warn(error)
     sched = BlockingScheduler()
-    sched.add_job(mainWork, 'interval', minutes=1)
+    sched.add_job(mainWork, 'cron', hour=5)
     sched.start()
         # handler = logging.StreamHandler(MyFormatter())
         # logger = logging.getLogger()
