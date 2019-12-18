@@ -87,7 +87,7 @@ if __name__ == "__main__":
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         streamHandler.setFormatter(formatter)
         mainLogger.addHandler(streamHandler)
-        fileHandler = logging.FileHandler("flight.log")
+        fileHandler = logging.FileHandler("main.log")
         fileHandler.setFormatter(formatter)
         mainLogger.addHandler(fileHandler)
 
@@ -111,16 +111,16 @@ if __name__ == "__main__":
         # print(farList)
         # print(veryFarList)
         # # 시간 소모 적은 거 -> 많은 거 순임.
-        # weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
-        # weatherConnector.getData()
-        # weatherConnector.updateDB()
-        # weatherConnector.clearVar()
+        weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
+        weatherConnector.getData()
+        weatherConnector.updateDB()
+        weatherConnector.clearVar()
         # # execute only if run as a script
-        # exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
-        # exchangeConnector.setDateTime(startDate="20190101")
-        # exchangeConnector.getData()
-        # exchangeConnector.updateDB()
-        # exchangeConnector.clearVar()
+        exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
+        exchangeConnector.setDateTime(startDate="20190101")
+        exchangeConnector.getData()
+        exchangeConnector.updateDB()
+        exchangeConnector.clearVar()
         # 1개 호출시 -> setOption,setDateOption,CreateSession, getAndIUpdate순
         # 여러개 호출시 -> 아래 코드 형식으로 가자
 
@@ -150,9 +150,10 @@ if __name__ == "__main__":
         except MemoryError as error:
             # Output expected MemoryErrors.
             mainLogger.warn(error)
-    sched = BlockingScheduler()
-    sched.add_job(mainWork, 'cron', hour=5)
-    sched.start()
+    # sched = BlockingScheduler()
+    # sched.add_job(mainWork, 'cron', hour=5)
+    # sched.start()
+    mainWork()
         # handler = logging.StreamHandler(MyFormatter())
         # logger = logging.getLogger()
         # logger.addHandler(handler)
