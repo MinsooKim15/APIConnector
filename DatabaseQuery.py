@@ -131,7 +131,7 @@ class Weather(Base):
     created = Column(DateTime, nullable=False)
     dateToShow = Column(DateTime, nullable=False)
 
-class RawExchange(Base):
+class RawExchange(Base, DBModel):
     __tablename__ = 'rawExchange'
 
     rawExchangeId = Column(String(100), primary_key=True)

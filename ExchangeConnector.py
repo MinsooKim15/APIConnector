@@ -42,8 +42,7 @@ class ExchangeConnector():
     def __init__(self,authKey,enginePath):
         path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
         self.authKey = authKey # TODO: config 문서로 빼기
-        self.enginePath = enginePath
-        # self.searchdate = searchdate # 그냥 숫자여도 잘 들어가네
+        self.enginePath = enginePath # 그냥 숫자여도 잘 들어가네
         self.dataType = "AP01" #AP01 빼고는 쓸 일이 없다.
 
         #이 밑은 로깅을 위한 코드임.
@@ -68,7 +67,7 @@ class ExchangeConnector():
         response = requests.get(self.url)
         exchange = response.json()
         for i in exchange:
-            rawExchange = databaseQuery.RawExchange(rateDate = self.searchdate, **i)
+            rawExchange = DatabaseQuery.RawExchange(rateDate = searchDate, **i)
             self.rawExchanges.append(rawExchange)
     def setDateTime(self,startDate,endDate=0):
         if endDate ==0:
@@ -99,3 +98,19 @@ class ExchangeConnector():
 
     def clearVar(self):
         self.rawExchanges = None
+
+if __name__ == "__main__":
+    import json, os, inspect
+    with open('config.json', 'r') as f:
+        config = json.load(f)
+
+    weatherUrl = config["weather"]["url"]
+    exchangeAuthKey = config["exchange"]["authKey"]
+    flightUrl = config["flight"]["url"]
+    flightKey = config["flight"]["x-rapidapi-key"]
+    dbEnginePath = config["db"]["enginePath"]
+    exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
+    exchangeConnector.setDateTime(startDate="20190101", endDate = "20191219")
+    exchangeConnector.getData()
+    exchangeConnector.updateDB()
+    exchangeConnector.clearVar()
