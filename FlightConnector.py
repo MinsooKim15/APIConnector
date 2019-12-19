@@ -36,6 +36,7 @@ from sqlalchemy import create_engine
 import sqlalchemy as db
 
 import logging
+import os, inspect
 
 class FlightConnector():
 
@@ -72,7 +73,8 @@ class FlightConnector():
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         streamHandler.setFormatter(formatter)
         self.flightLogger.addHandler(streamHandler)
-        fileHandler = logging.FileHandler("flight.log")
+        path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+        fileHandler = logging.FileHandler(path+"/main.log")
         fileHandler.setFormatter(formatter)
         self.flightLogger.addHandler(fileHandler)
         print("(1) This is the Initiation : Should Show Once")

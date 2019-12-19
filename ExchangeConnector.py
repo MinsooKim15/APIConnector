@@ -33,12 +33,14 @@ from datetime import timedelta
 from typing import List, Any
 import requests
 import logging
+import os, inspect
 
 class ExchangeConnector():
     rawExchanges: List[Any] = []
     dateList : List[DateTime] = []
 
     def __init__(self,authKey,enginePath):
+        path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
         self.authKey = authKey # TODO: config 문서로 빼기
         self.enginePath = enginePath
         # self.searchdate = searchdate # 그냥 숫자여도 잘 들어가네
@@ -51,7 +53,7 @@ class ExchangeConnector():
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         streamHandler.setFormatter(formatter)
         self.exchangeLogger.addHandler(streamHandler)
-        fileHandler = logging.FileHandler("main.log")
+        fileHandler = logging.FileHandler(path+"/main.log")
         fileHandler.setFormatter(formatter)
         self.exchangeLogger.addHandler(fileHandler)
         self.exchangeLogger.info("Exchange Connector Init")

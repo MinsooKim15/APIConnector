@@ -33,6 +33,7 @@ import requests
 # 대충 구조는 비슷한 것 같다.
 import xml.etree.ElementTree as ET
 import logging
+import os,inspect
 
 class WeatherConnector():
     weatherLogger = ""
@@ -40,6 +41,7 @@ class WeatherConnector():
     def __init__(self,url,enginePath):
         self.url = url
         self.enginePath = enginePath
+        path = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
         #Logging 코드 작성
         self.weatherLogger = logging.getLogger("weather")
         self.weatherLogger.setLevel(logging.INFO)
@@ -47,7 +49,7 @@ class WeatherConnector():
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         streamHandler.setFormatter(formatter)
         self.weatherLogger.addHandler(streamHandler)
-        fileHandler = logging.FileHandler("main.log")
+        fileHandler = logging.FileHandler(path+"/main.log")
         fileHandler.setFormatter(formatter)
         self.weatherLogger.addHandler(fileHandler)
         self.weatherLogger.warn("(1) This is the Initiation : Should Show Once")
