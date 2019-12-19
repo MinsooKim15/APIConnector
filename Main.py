@@ -37,6 +37,10 @@ def makeDateRange(startDate,range = 365):
     endDateInString = endDate.strftime("%Y-%m-%d")
     return [startDateInString, endDateInString]
 
+def makeDateString(date):
+    # Datetime Object여야 함. 아직 타입 체킹은 넣지 않음
+    return str(date.year) + str(date.month).zfill(2) + str(date.day).zfill(2)
+
 
 import time
 import logging
@@ -99,6 +103,8 @@ if __name__ == "__main__":
     # print(nearAsiaList)
     # print(farList)
     # print(veryFarList)
+    # 오늘부터 1년
+    today = datetime.now()
     # # 시간 소모 적은 거 -> 많은 거 순임.
     weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
     weatherConnector.getData()
@@ -106,15 +112,14 @@ if __name__ == "__main__":
     weatherConnector.clearVar()
     # # execute only if run as a script
     exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
-    exchangeConnector.setDateTime(startDate="20190101")
+    exchangeConnector.setDateTime(startDate=makeDateString(today))
     exchangeConnector.getData()
     exchangeConnector.updateDB()
     exchangeConnector.clearVar()
     # 1개 호출시 -> setOption,setDateOption,CreateSession, getAndIUpdate순
     # 여러개 호출시 -> 아래 코드 형식으로 가자
 
-    # 오늘부터 1년
-    today = datetime.now()
+
     dateRange = makeDateRange(today, range=10)
     flightConnector = FlightConnector(url=flightUrl, key=flightKey, enginePath=dbEnginePath)
     mainLogger.info("Init 성공")
