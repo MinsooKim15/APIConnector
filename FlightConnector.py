@@ -181,7 +181,10 @@ class FlightConnector():
         self.flightLogger.info("created Session with:" +str(payload))
         # print(response.headers)
         # print(response.json())
-        self.sessionKey = response.headers["Location"].split('/')[-1]
+        try:
+            self.sessionKey = response.headers["Location"].split('/')[-1]
+        except KeyError:
+            self.flightLogger.warn("No SessionKey Returned. Response Body :", + response.body)
         # print("Session Key:", self.sessionKey)
 
     def getAndUpdateData(self):
