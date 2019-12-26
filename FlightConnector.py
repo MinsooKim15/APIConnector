@@ -77,7 +77,6 @@ class FlightConnector():
         fileHandler = logging.FileHandler(path+"/main.log")
         fileHandler.setFormatter(formatter)
         self.flightLogger.addHandler(fileHandler)
-        self.flightLogger.info("(1) This is the Initiation : Should Show Once")
         self.alchemyLogger = logging.getLogger('sqlalchemy.engine')
         self.alchemyLogger.setLevel(logging.ERROR)
         self.alchemyLogger.addHandler(fileHandler)
@@ -181,7 +180,7 @@ class FlightConnector():
         'content-type': "application/x-www-form-urlencoded"
         }
         response = requests.request("POST", url, data=payload, headers=headers)
-        self.flightLogger.info("(2) create Session should show first of all other methods except Init")
+        # self.flightLogger.info("(2) create Session should show first of all other methods except Init")
         self.flightLogger.info("created Session with:" +str(payload))
         # print(response.headers)
         # print(response.json())
@@ -194,7 +193,7 @@ class FlightConnector():
 
     def getAndUpdateData(self):
         # 해당 inboundDate, outboundDate의 모든 index, page의 데이터를 순차적으로 commit한다.
-        self.flightLogger.info("(4) getAndUpdateData : This should Show after getAndUpdateData")
+        # self.flightLogger.info("(4) getAndUpdateData : This should Show after getAndUpdateData")
         for i in range(1, 1000):
             # print(i, "번째")
             try :
@@ -222,7 +221,7 @@ class FlightConnector():
         # print(response.status_code)
         # print(response.text)
         # print(response.json())
-        self.flightLogger.info("(5) getOneData This should Show After getAndUpdateData")
+        # self.flightLogger.info("(5) getOneData This should Show After getAndUpdateData")
         self.flightLogger.info("Get New data from" + str(querystring))
         try:
             resultQuery = response.json()["Query"]
