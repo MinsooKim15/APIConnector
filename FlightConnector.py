@@ -267,7 +267,7 @@ class FlightConnector():
                 OutboundLegId = i["OutboundLegId"],
                 InboundLegId = i["InboundLegId"],
                 #임시 삭제
-                # PricingOptions  = i["PricingOptions"],
+                PricingOptions  = i["PricingOptions"],
                 BookingDetailsLink = i["BookingDetailsLink"],
                 Adults = query["Adults"],
                 Children = query["Children"],

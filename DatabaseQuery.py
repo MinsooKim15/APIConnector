@@ -322,7 +322,7 @@ class RawFlightItinerary(Base, DBModel):
         self.rawFlightItinerariesId = self.makeId(self.prefix)
         self.outboundLegId = str(OutboundLegId)
         self.inboundLegId = str(InboundLegId)
-        self.pricingOptions = str(PricingOptions)
+        # self.pricingOptions = str(PricingOptions)
         self.bookingDetailsLink = str(BookingDetailsLink)
         self.queryAdults = str(Adults)
         self.queryChildren = str(Children)
