@@ -57,9 +57,9 @@ class ExchangeConnector():
         self.exchangeLogger.addHandler(fileHandler)
         self.exchangeLogger.info("Exchange Connector Init")
         self.alchemyLogger = logging.getLogger('sqlalchemy.engine')
-        self.alchemyLogger.setLevel(logging.INFO)
-        self.alchemyLogger.addHandler(streamHandler)
+        self.alchemyLogger.setLevel(logging.ERROR)
         self.alchemyLogger.addHandler(fileHandler)
+
 
     def getOneData(self,searchDate):
         # self.searchdate = searchdate

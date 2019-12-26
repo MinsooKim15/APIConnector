@@ -79,8 +79,7 @@ class FlightConnector():
         self.flightLogger.addHandler(fileHandler)
         self.flightLogger.info("(1) This is the Initiation : Should Show Once")
         self.alchemyLogger = logging.getLogger('sqlalchemy.engine')
-        self.alchemyLogger.setLevel(logging.INFO)
-        self.alchemyLogger.addHandler(streamHandler)
+        self.alchemyLogger.setLevel(logging.ERROR)
         self.alchemyLogger.addHandler(fileHandler)
 
         self.url = url
@@ -184,7 +183,7 @@ class FlightConnector():
         try:
             self.sessionKey = response.headers["Location"].split('/')[-1]
         except KeyError:
-            self.flightLogger.warn("No SessionKey Returned. Response Body :", + response.body)
+            self.flightLogger.warn("No SessionKey Returned. Response Body :", + response)
         # print("Session Key:", self.sessionKey)
 
     def getAndUpdateData(self):
@@ -324,7 +323,7 @@ class FlightConnector():
             results.append(result)
         return results
     def updateDB(self):
-        engine = create_engine(self.enginePath, echo=True)
+        engine = create_engine(self.enginePath, echo=False)
         Session = sessionmaker(bind=engine)
         session = Session()
         session.add_all(self.rawFlightItineraries)
@@ -335,6 +334,9 @@ class FlightConnector():
         session.add_all(self.rawFlightPlaces)
         session.add_all(self.rawFlightAgents)
         session.commit()
+
+        self.flightLogger.info(f"(5) Commit Done - [itineraries : {len(self.rawFlightItineraries)}, pricingOptions : {len(self.rawPricingOptions)}, legs : {len(self.rawFlightLegs)}, segments : {len(self.rawFlightSegments)},  carriers : {len(self.rawFlightCarriers)}, places : {len(self.rawFlightPlaces)}, agents : {len(self.rawFlightAgents)}]")
+
         del session
 
     def clearVar(self):
