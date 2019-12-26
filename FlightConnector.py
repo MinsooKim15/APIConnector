@@ -144,7 +144,12 @@ class FlightConnector():
         for dateTuple in self.gridSearchDatesList:
             outDate, inDate = dateTuple
             self.setDateOption(outboundDate=outDate, inboundDate=inDate)
-            self.createSession()
+            try:
+                self.createSession()
+            except KeyError as error:
+                #이번 날짜 Tuple은 날린다.
+                time.sleep(30)
+                continue
             self.getAndUpdateData()
             self.clearVar()
             # 무료 API여서 약 분당 40회(호출당 두번 * 20회) 하기 위해 쉰다.
@@ -183,7 +188,8 @@ class FlightConnector():
         try:
             self.sessionKey = response.headers["Location"].split('/')[-1]
         except KeyError:
-            self.flightLogger.warn("No SessionKey Returned. Response Body :", + response)
+            self.flightLogger.warn("No SessionKey Returned. Response Body :" + str(response.text))
+            raise KeyError("No Session Key")
         # print("Session Key:", self.sessionKey)
 
     def getAndUpdateData(self):
@@ -191,7 +197,12 @@ class FlightConnector():
         self.flightLogger.info("(4) getAndUpdateData : This should Show after getAndUpdateData")
         for i in range(1, 1000):
             # print(i, "번째")
-            hasResult = self.getOneData(pageIndex = i, pageSize=500)
+            try :
+                hasResult = self.getOneData(pageIndex = i, pageSize=500)
+            except KeyError:
+                time.sleep(30)
+                continue
+
             # print("결과가 있나요?",hasResult)
             if hasResult:
                 self.updateDB()
@@ -213,14 +224,18 @@ class FlightConnector():
         # print(response.json())
         self.flightLogger.info("(5) getOneData This should Show After getAndUpdateData")
         self.flightLogger.info("Get New data from" + str(querystring))
-        resultQuery = response.json()["Query"]
-        resultItineraries = response.json()["Itineraries"]
-        resultLegs = response.json()["Legs"]
-        resultSegments = response.json()["Segments"]
-        resultCarriers = response.json()["Carriers"]
-        resultAgents = response.json()["Agents"]
-        resultPlaces = response.json()["Places"]
-        self.apiCallId = self.makeApiCallId()
+        try:
+            resultQuery = response.json()["Query"]
+            resultItineraries = response.json()["Itineraries"]
+            resultLegs = response.json()["Legs"]
+            resultSegments = response.json()["Segments"]
+            resultCarriers = response.json()["Carriers"]
+            resultAgents = response.json()["Agents"]
+            resultPlaces = response.json()["Places"]
+            self.apiCallId = self.makeApiCallId()
+        except KeyError:
+            self.flightLogger.warn("Key Error While Parsing Response. This is Response :" + str(response.text))
+            raise KeyError
         # print("ApiCallId는:", self.apiCallId)
 
         self.rawFlightItineraries, self.rawPricingOptions = self.makeRawFlightItineraries(iti = resultItineraries, query = resultQuery, apiCallId = self.apiCallId)

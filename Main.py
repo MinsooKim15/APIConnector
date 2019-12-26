@@ -154,3 +154,5 @@ if __name__ == "__main__":
         # logger.addHandler(handler)
         # # flightConnector.setGridSearchDates(outboundDateRange= dateRange , inboundDateRange= dateRange)
         # flightConnector.gridSearchGetDateAndUpdateDB()
+
+
