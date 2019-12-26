@@ -120,11 +120,12 @@ if __name__ == "__main__":
     # 여러개 호출시 -> 아래 코드 형식으로 가자
 
 
-    dateRange = makeDateRange(today, range=10)
     flightConnector = FlightConnector(url=flightUrl, key=flightKey, enginePath=dbEnginePath)
     mainLogger.info("Init 성공")
 
     try:
+        targetDay = today + timedelta(days=90)
+        dateRange = makeDateRange(targetDay, range=10)
         for i in nearAsiaList:
             # 일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
             print("시작")
@@ -132,11 +133,15 @@ if __name__ == "__main__":
             flightConnector.setOption(destinationPlace=i)
             flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=3, maximumTerm=3)
             flightConnector.gridSearchGetDateAndUpdateDB()
+        targetDay = today + timedelta(days=180)
+        dateRange = makeDateRange(targetDay, range=10)
         for j in farList:
             # 멀다면 1주 ~ 2주를 주로 가는 시간대로 가정한다.
             flightConnector.setOption(destinationPlace=j)
             flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=7, maximumTerm=7)
             flightConnector.gridSearchGetDateAndUpdateDB()
+        targetDay = today + timedelta(days=180)
+        dateRange = makeDateRange(targetDay, range=10)
         for k in veryFarList:
             flightConnector.setOption(destinationPlace=k)
             flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=12, maximumTerm=12)
