@@ -221,7 +221,7 @@ class FlightConnector():
         self.apiCallId = self.makeApiCallId()
         # print("ApiCallId는:", self.apiCallId)
 
-        self.rawFlightItineraries = self.makeRawFlightItineraries(iti = resultItineraries, query = resultQuery, apiCallId = self.apiCallId)
+        self.rawFlightItineraries, self.rawPricingOptions = self.makeRawFlightItineraries(iti = resultItineraries, query = resultQuery, apiCallId = self.apiCallId)
         self.rawFlightLegs = self.makeRawFlightLegs(resultLegs, self.apiCallId)
         self.rawFlightSegments = self.makeRawFlightSegments(resultSegments, self.apiCallId)
         self.rawFlightCarriers = self.makeRawFlightCarriers(resultCarriers, self.apiCallId)
@@ -258,6 +258,7 @@ class FlightConnector():
 
     def makeRawFlightItineraries(self, iti, query,apiCallId):
         results = []
+        pricingOptions = []
         # print(apiCallId)
         # print("iti의 길이")
         # print(len(iti))
@@ -277,7 +278,15 @@ class FlightConnector():
                 GroupPricing = query["GroupPricing"],
                 apiCallId = apiCallId)
             results.append(result)
-        return results
+            for k in i["PricingOptions"]:
+                pricingOptionResult = DatabaseQuery.RawFlightPricingOption(
+                    rawFlightItinerariesId = result.rawFlightItinerariesId,
+                    agents = k["Agents"],
+                    price = k["Price"],
+                    deepLinkUrl = k["DeeplinkUrl"]
+                )
+                pricingOptions.append(pricingOptionResult)
+        return (results, pricingOptions)
     def makeRawFlightLegs(self, legs, apiCallId):
         results = []
         for i in legs:
@@ -315,6 +324,7 @@ class FlightConnector():
         Session = sessionmaker(bind=engine)
         session = Session()
         session.add_all(self.rawFlightItineraries)
+        session.add_all(self.rawPricingOptions)
         session.add_all(self.rawFlightLegs)
         session.add_all(self.rawFlightSegments)
         session.add_all(self.rawFlightCarriers)
@@ -329,4 +339,5 @@ class FlightConnector():
         self.rawFlightCarriers = None
         self.rawFlightSegments = None
         self.rawFlightAgents = None
+        self.rawPricingOptions = None
 

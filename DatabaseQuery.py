@@ -335,6 +335,26 @@ class RawFlightItinerary(Base, DBModel):
         self.apiCallId = apiCallId
         self.writeDate = datetime.now()
 
+
+class RawFlightPricingOption(Base, DBModel):
+    __tablename__ = 'RawFlightPricingOptions'
+
+    rawFlightPricingOptionsId = Column(String(100), primary_key=True)
+    rawFlightItinerariesId = Column(String(100))
+    agents = Column(Text)
+    price = Column(Float)
+    deepLinkUrl = Column(Text)
+    writeDate = Column(DateTime)
+    def __init__(self,rawFlightItinerariesId, agents, price, deepLinkUrl):
+        # prefix는 table명 첫글자 소문자화
+        self.prefix = self.__tablename__[0].lower() + self.__tablename__[1:]
+        self.rawFlightPricingOptionsId = self.makeId(self.prefix)
+        self.rawFlightItinerariesId = rawFlightItinerariesId
+        self.agents = str(agents)
+        self.price = float(price)
+        self.deepLinkUrl = str(deepLinkUrl)
+
+
 class RawFlightLeg(Base, DBModel):
     __tablename__ = 'RawFlightLegs'
 
