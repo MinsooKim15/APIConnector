@@ -452,7 +452,7 @@ class RawFlightPlace(Base, DBModel):
     apiCallId = Column(String(100))
     writeDate = Column(DateTime)
 
-    def __init__(self, Id, Code, Type, Name, apiCallId, ParentId = 0):
+    def __init__(self, Id,  Type, Name, apiCallId, ParentId = 0, Code = "0"):
         assert apiCallId != None
         # ParentId가 없는 경우, 0으로 채움
         self.prefix = self.__tablename__[0].lower() + self.__tablename__[1:]

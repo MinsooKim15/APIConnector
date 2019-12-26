@@ -266,7 +266,8 @@ class FlightConnector():
             result = DatabaseQuery.RawFlightItinerary(
                 OutboundLegId = i["OutboundLegId"],
                 InboundLegId = i["InboundLegId"],
-                PricingOptions  = i["PricingOptions"],
+                #임시 삭제
+                # PricingOptions  = i["PricingOptions"],
                 BookingDetailsLink = i["BookingDetailsLink"],
                 Adults = query["Adults"],
                 Children = query["Children"],
