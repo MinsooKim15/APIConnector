@@ -466,6 +466,45 @@ class RawFlightPlace(Base, DBModel):
         self.writeDate = datetime.now()
 
 
+class RawFlightQuote(Base, DBModel):
+    __tablename__ = 'RawFlightQuotes'
+
+    rawFlightQuotesId = Column(String(100), primary_key=True)
+    skyscannerQuoteId = Column(String(100))
+    minPrice = Column(Float)
+    direct = Column(TINYINT(1))
+    quoteFirstLegCarrierId = Column(String(100))
+    quoteFirstLegDestinationId = Column(String(100))
+    quoteFirstLegOriginId = Column(String(100))
+    quoteFirstDepartureDate = Column(DateTime)
+    quoteDateTime = Column(DateTime)
+    queryOutboundDate = Column(DateTime)
+    queryInboundDate = Column(DateTime)
+    queryDestinationPlace = Column(Text)
+    queryOriginPlace = Column(Text)
+    writeDate = Column(DateTime)
+    apiCallId = Column(String(100))
+
+    def __init__(self, QuoteId, MinPrice, Direct, OutboundLeg,  QuoteDateTime, originPlace, destinationPlace, outboundDate, apiCallId, inboundDate):
+        assert apiCallId != None
+
+        self.prefix = self.__tablename__[0].lower() + self.__tablename__[1:]
+        self.rawFlightQuotesId = self.makeId(self.prefix)
+        self.skyscannerQuoteId = QuoteId
+        self.minPrice = MinPrice
+        self.direct = Direct
+        self.quoteFirstLegCarrierId = OutboundLeg["CarrierIds"][0]
+        self.quoteFirstLegDestinationId = OutboundLeg["DestinationId"]
+        self.quoteFirstLegOriginId = OutboundLeg["OriginId"]
+        self.quoteFirstDepartureDate = OutboundLeg["DepartureDate"]
+        self.quoteDateTime = QuoteDateTime
+        self.queryOutboundDate = outboundDate
+        self.queryInboundDate = None
+        self.queryDestinationPlace = destinationPlace
+        self.queryOriginPlace = originPlace
+        self.writeDate = datetime.now()
+        self.apiCallId = apiCallId
+
 # if __name__ == "__main__":
 #     # engine = create_engine('mysql+pymysql://root
 #     :1234567890@localhost/eightDays', echo=True)

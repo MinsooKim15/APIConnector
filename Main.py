@@ -25,7 +25,7 @@ import DatabaseQuery
 from ExchangeConnector import ExchangeConnector
 from FlightConnector import *
 from WeatherConnector import WeatherConnector
-
+from FlightQuoteConnector import *
 
 
 #Config Import
@@ -97,62 +97,71 @@ if __name__ == "__main__":
         airportList = json.load(j)
 
     nearAsiaList = list(airportList["northEastAsia"].keys()) + list(airportList["southAsia"].keys())
-    farList = list(airportList["southWestAsia"].keys()) + list(airportList["europe"].keys()) + list(
-        airportList["northAmerica"].keys()) + list(airportList["oceania"].keys())
+    farList = list(airportList["southWestAsia"].keys()) + list(airportList["europe"].keys()) + list(airportList["northAmerica"].keys()) + list(airportList["oceania"].keys())
     veryFarList = list(airportList["africa"].keys()) + list(airportList["latinAmerica"].keys())
-    # print(nearAsiaList)
-    # print(farList)
-    # print(veryFarList)
-    # 오늘부터 1년
+    # # print(nearAsiaList)
+    # # print(farList)
+    # # print(veryFarList)
+    # # 오늘부터 1년
     today = datetime.now()
     # # 시간 소모 적은 거 -> 많은 거 순임.
     weatherConnector = WeatherConnector(url = weatherUrl, enginePath = dbEnginePath)
     weatherConnector.getData()
     weatherConnector.updateDB()
     weatherConnector.clearVar()
-    # # execute only if run as a script
+    # # # execute only if run as a script
     exchangeConnector = ExchangeConnector(authKey = exchangeAuthKey, enginePath= dbEnginePath)
     exchangeConnector.setDateTime(startDate=makeDateString(today))
     exchangeConnector.getData()
     exchangeConnector.updateDB()
     exchangeConnector.clearVar()
-    # 1개 호출시 -> setOption,setDateOption,CreateSession, getAndIUpdate순
-    # 여러개 호출시 -> 아래 코드 형식으로 가자
-
-
-    flightConnector = FlightConnector(url=flightUrl, key=flightKey, enginePath=dbEnginePath)
-    mainLogger.info("Init 성공")
-
-    try:
-        targetDay = today + timedelta(days=90)
-        dateRange = makeDateRange(targetDay, range=10)
+    # # 1개 호출시 -> setOption,setDateOption,CreateSession, getAndIUpdate순
+    # # 여러개 호출시 -> 아래 코드 형식으로 가자
+    #
+    #
+    # flightConnector = FlightConnector(url=flightUrl, key=flightKey, enginePath=dbEnginePath)
+    # mainLogger.info("Init 성공")
+    #
+    # try:
+    #     # targetDay = today + timedelta(days=90)
+    #     # dateRange = makeDateRange(targetDay, range=10)
+    #     # for i in nearAsiaList:
+    #     #     # 일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
+    #     #     print("시작")
+    #     #     print(i)
+    #     #     flightConnector.setOption(destinationPlace=i)
+    #     #     flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=3, maximumTerm=3)
+    #     #     flightConnector.gridSearchGetDateAndUpdateDB()
+    #     targetDay = today + timedelta(days=180)
+    #     dateRange = makeDateRange(targetDay, range=10)
+    #     for j in farList:
+    #         # 멀다면 1주 ~ 2주를 주로 가는 시간대로 가정한다.
+    #         flightConnector.setOption(destinationPlace=j)
+    #         flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=7, maximumTerm=7)
+    #         flightConnector.gridSearchGetDateAndUpdateDB()
+    #     targetDay = today + timedelta(days=180)
+    #     dateRange = makeDateRange(targetDay, range=10)
+    #     for k in veryFarList:
+    #         flightConnector.setOption(destinationPlace=k)
+    #         flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=12, maximumTerm=12)
+    #         flightConnector.gridSearchGetDateAndUpdateDB()
+    # except MemoryError as error:
+    #     # Output expected MemoryErrors.
+    #     mainLogger.warn(error)
+    #
+    flightQuoteConnector = FlightQuoteConnector(url= flightUrl, key = flightKey, enginePath = dbEnginePath)
+    try :
+        startMonth = datetime.now()
+        endMonth = datetime(year = 2020, month = 12, day = 31)
         for i in nearAsiaList:
-            # 일본 동남아는 3~6일 사이가 주로 가는 시간대로 가정한다.
-            print("시작")
-            print(i)
-            flightConnector.setOption(destinationPlace=i)
-            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=3, maximumTerm=3)
-            flightConnector.gridSearchGetDateAndUpdateDB()
-        targetDay = today + timedelta(days=180)
-        dateRange = makeDateRange(targetDay, range=10)
+            flightQuoteConnector.getAndUpdateData(startMonth=startMonth, endMonth= endMonth, originPlace="ICN", destinationPlace= i)
         for j in farList:
-            # 멀다면 1주 ~ 2주를 주로 가는 시간대로 가정한다.
-            flightConnector.setOption(destinationPlace=j)
-            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=7, maximumTerm=7)
-            flightConnector.gridSearchGetDateAndUpdateDB()
-        targetDay = today + timedelta(days=180)
-        dateRange = makeDateRange(targetDay, range=10)
+            flightQuoteConnector.getAndUpdateData(startMonth=startMonth, endMonth = endMonth, originPlace= "ICN", destinationPlace= j)
         for k in veryFarList:
-            flightConnector.setOption(destinationPlace=k)
-            flightConnector.setGridSearchDatesByConstant(dateRange=dateRange, minimumTerm=12, maximumTerm=12)
-            flightConnector.gridSearchGetDateAndUpdateDB()
+            flightQuoteConnector.getAndUpdateData(startMonth=startMonth, endMonth=endMonth, originPlace="ICN",
+                                                  destinationPlace=k)
     except MemoryError as error:
         # Output expected MemoryErrors.
         mainLogger.warn(error)
-        # handler = logging.StreamHandler(MyFormatter())
-        # logger = logging.getLogger()
-        # logger.addHandler(handler)
-        # # flightConnector.setGridSearchDates(outboundDateRange= dateRange , inboundDateRange= dateRange)
-        # flightConnector.gridSearchGetDateAndUpdateDB()
 
-
+        # 여기는 Quote만

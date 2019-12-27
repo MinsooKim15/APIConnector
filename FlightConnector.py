@@ -203,6 +203,7 @@ class FlightConnector():
                 continue
 
             # print("결과가 있나요?",hasResult)
+            self.flightLogger.info("Has Result : " + str(hasResult))
             if hasResult:
                 self.updateDB()
             else:
@@ -211,7 +212,7 @@ class FlightConnector():
     def getOneData(self,pageIndex = 1, pageSize = 1000):
         url = "https://skyscanner-skyscanner-flight-search-v1.p.rapidapi.com/apiservices/pricing/uk2/v1.0/"
         queryUrl = url + self.sessionKey
-        querystring = {"originAirports":self.originPlace,"destinationAirports":self.destinationPlace,"pageIndex":pageIndex,"pageSize":pageSize}
+        querystring = {"pageIndex":pageIndex,"pageSize":pageSize}
         headers = {
         'x-rapidapi-host': "skyscanner-skyscanner-flight-search-v1.p.rapidapi.com",
         'x-rapidapi-key': self.key
@@ -236,7 +237,7 @@ class FlightConnector():
             self.flightLogger.warn("Key Error While Parsing Response. This is Response :" + str(response.text))
             raise KeyError
         # print("ApiCallId는:", self.apiCallId)
-
+        self.flightLogger.info(response.json())
         self.rawFlightItineraries, self.rawPricingOptions = self.makeRawFlightItineraries(iti = resultItineraries, query = resultQuery, apiCallId = self.apiCallId)
         self.rawFlightLegs = self.makeRawFlightLegs(resultLegs, self.apiCallId)
         self.rawFlightSegments = self.makeRawFlightSegments(resultSegments, self.apiCallId)
@@ -246,6 +247,7 @@ class FlightConnector():
         # print("**************")
         # print(self.rawFlightItineraries)
         if len(self.rawFlightItineraries) > 0:
+
             return True
         else :
             return False
