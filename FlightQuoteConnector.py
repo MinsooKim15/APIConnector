@@ -141,7 +141,6 @@ class FlightQuoteConnector():
         except KeyError:
             self.flightLogger.warn("Key Error While Parsing Response. This is Response :" + str(response.text))
             raise KeyError
-        self.flightLogger.info(response.json())
         self.rawFlightQuotes = self.makeRawFlightQuotes(resultQuotes,originPlace, destinationPlace, outboundDate, inboundDate, self.apiCallId)
         # self.rawFlightCarriers = self.makeRawFlightCarriers(resultCarriers, self.apiCallId)
         # self.rawFlightPlaces = self.makeRawFlightPlaces(resultPlaces, self.apiCallId)
