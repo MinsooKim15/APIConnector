@@ -105,6 +105,9 @@ class FlightQuoteConnector():
             self.updateDB()
             self.clearVar()
             time.sleep(3)
+        #속도향상을 위해 조금만 모아서 하ㅏㅈ
+
+
         for j in dateRange:
             # 돌아오는 비행기도 알아보자
             self.getOneData(originPlace=destinationPlace, destinationPlace=originPlace, outboundDate=j)
@@ -113,6 +116,8 @@ class FlightQuoteConnector():
             self.updateDB()
             self.clearVar()
             time.sleep(3)
+
+
 
     def getOneData(self,originPlace, destinationPlace, outboundDate, inboundDate = 0):
         print( "get OneData Start")
@@ -195,7 +200,7 @@ class FlightQuoteConnector():
                 inboundDate = inboundDate
             )
             results.append(result)
-            return results
+        return results
 
 
     def makeRawFlightCarriers(self, carriers, apiCallId):

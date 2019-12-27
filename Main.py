@@ -152,7 +152,7 @@ if __name__ == "__main__":
     flightQuoteConnector = FlightQuoteConnector(url= flightUrl, key = flightKey, enginePath = dbEnginePath)
     try :
         startMonth = datetime.now()
-        endMonth = datetime(year = 2020, month = 12, day = 31)
+        endMonth = startMonth + timedelta(days= 365)
         for i in nearAsiaList:
             flightQuoteConnector.getAndUpdateData(startMonth=startMonth, endMonth= endMonth, originPlace="ICN", destinationPlace= i)
         for j in farList:
