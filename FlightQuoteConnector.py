@@ -84,7 +84,8 @@ class FlightQuoteConnector():
         self.url = url
         self.key = key
         self.enginePath = enginePath
-
+        # 실제 한 번의 APICall은 아니지만, 한 회의 Cron이 도는 것을 같은 ID로 표기하자
+        self.apiCallId = self.makeApiCallId()
 
     def getAndUpdateData(self,startMonth, endMonth, originPlace, destinationPlace):
         assert type(startMonth) is datetime, "start Month는 DateTime만 받아요."
@@ -142,7 +143,7 @@ class FlightQuoteConnector():
             resultQuotes = response.json()["Quotes"]
             resultCarriers = response.json()["Carriers"]
             resultPlaces = response.json()["Places"]
-            self.apiCallId = self.makeApiCallId()
+
         except KeyError:
             self.flightLogger.warn("Key Error While Parsing Response. This is Response :" + str(response.text))
             raise KeyError
